@@ -202,6 +202,9 @@ public class MainActivity extends AppCompatActivity {
         return picUri;
     }
 
+    // MediaStore.Video.Media.EXTERNAL_CONTENT_URI   删除视频的Uri
+    // MediaStore.Images.Media.EXTERNAL_CONTENT_URI   删除图片的Uri
+    // MediaStore.Audio.Media.EXTERNAL_CONTENT_URI   删除音频的Uri
     @RequiresApi(api = 30)
     private void deletePic() {
         Cursor cursor = resolver.query(
