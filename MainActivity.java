@@ -254,4 +254,83 @@ public class MainActivity extends AppCompatActivity {
 //            e.printStackTrace();
 //        }
     }
+
+     private void saveVideo() {
+        String path = getExternalFilesDir("").getAbsolutePath() + File.separator + "otg.mp4";
+        Uri uri = null;
+        try {
+            uri = insertVideo(this, path);
+
+            //这是一种存储方式
+//            byte[] bytesByFile = getBytesByFile(path);
+//            try {
+//                OutputStream outputStream = resolver.openOutputStream(uri);
+//                outputStream.write(bytesByFile);
+//                outputStream.flush();
+//                outputStream.close();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+
+            //因为只需要向URI指向的目录里写文件，因此只要设置为w的写入模式
+            AssetFileDescriptor descriptor=getContentResolver().openAssetFileDescriptor(uri,"w");
+            if(descriptor!=null) {
+                FileInputStream inputStream=new FileInputStream(path);
+                FileOutputStream outputStream=descriptor.createOutputStream();
+                int byteRead;
+                byte[] buffer = new byte[1024];
+                while ((byteRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, byteRead);
+                }
+                inputStream.close();
+                outputStream.close();
+            }
+        } catch (Exception e) {
+            Log.e("dddd", Arrays.toString(e.getStackTrace()), e);
+        }
+    }
+
+     /**
+     * 插入一条视频的记录到媒体库
+     *
+     * @param context  上下文
+     * @param filePath 需要插入的视频文件地址
+     * @return 返回一个等待使用的Uri，不使用，则记录不会插入成功
+     */
+    private static Uri insertVideo(Context context, String filePath) {
+        File file = new File(filePath);
+        long paramLong = System.currentTimeMillis();
+        ContentValues localContentValues = new ContentValues();
+        localContentValues.put(MediaStore.Audio.Media.TITLE, file.getName());
+        localContentValues.put(MediaStore.Audio.Media.DISPLAY_NAME, "test.mp4");
+        localContentValues.put(MediaStore.Audio.Media.MIME_TYPE, "video/mp4");
+        localContentValues.put(MediaStore.Audio.Media.DATE_ADDED, paramLong);
+        localContentValues.put(MediaStore.Audio.Media.DATA, file.getAbsolutePath());
+        localContentValues.put(MediaStore.Audio.Media.SIZE, file.length());
+        localContentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM + "/Test");
+
+        return context
+                .getContentResolver()
+                .insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, localContentValues);
+    }
+    //文件转byte[]
+    public static byte[] getBytesByFile(String pathStr) {
+        File file = new File(pathStr);
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
+            byte[] b = new byte[1024];
+            int n;
+            while ((n = fis.read(b)) != -1) {
+                bos.write(b, 0, n);
+            }
+            fis.close();
+            byte[] data = bos.toByteArray();
+            bos.close();
+            return data;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
